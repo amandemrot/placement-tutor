@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f3f1ff;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-bg: #0a0a12;
+  --color-card: #12121e;
+  --color-card2: #1a1a2e;
+  --color-line: #2a2a45;
+}
+
+body {
+  background: var(--color-bg);
+  color: #e5e7eb;
+  font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+
+/* aurora animated background */
+.aurora {
+  background: radial-gradient(60% 80% at 20% 20%, rgba(124,58,237,.25), transparent 60%),
+              radial-gradient(50% 70% at 80% 30%, rgba(139,92,246,.18), transparent 60%),
+              radial-gradient(70% 90% at 50% 90%, rgba(99,102,241,.15), transparent 60%);
+  animation: auroraShift 12s ease-in-out infinite alternate;
+}
+@keyframes auroraShift {
+  from { background-position: 0% 0%, 100% 0%, 50% 100%; }
+  to   { background-position: 30% 20%, 70% 10%, 40% 80%; }
+}
+
+.glass {
+  background: rgba(18, 18, 30, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+.glow {
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.25);
+}
