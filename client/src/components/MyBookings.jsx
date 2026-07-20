@@ -66,7 +66,14 @@ export default function MyBookings() {
             className="border-b border-line/50 text-sm px-4 py-4 md:px-6 md:grid md:grid-cols-5 md:items-center">
             {/* Mobile: stacked card / Desktop: table row */}
             <div className="flex items-center justify-between md:block">
-              <span className="text-white font-semibold">{b.mentor?.name}</span>
+              <span className="flex items-center gap-2.5">
+                <img
+                  src={b.mentor?.mentorProfile?.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(b.mentor?.name || "M")}`}
+                  alt={b.mentor?.name}
+                  className="w-8 h-8 rounded-full object-cover border border-line"
+                />
+                <span className="text-white font-semibold">{b.mentor?.name}</span>
+              </span>
               <span className={`md:hidden text-[10px] tracking-widest rounded-full px-3 py-1 border uppercase ${
                 b.status === "confirmed"
                   ? "bg-green-500/15 text-green-400 border-green-500/40"

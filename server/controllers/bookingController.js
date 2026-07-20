@@ -165,7 +165,7 @@ exports.releaseSlot = async (req, res) => {
 exports.myBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ student: req.user._id })
-      .populate("mentor", "name avatar mentorProfile.company")
+      .populate("mentor", "name avatar mentorProfile.company mentorProfile.photo")
       .populate("slot", "date startTime endTime durationMinutes")
       .sort("-createdAt");
     res.json(bookings);
