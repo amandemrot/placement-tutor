@@ -13,11 +13,9 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/mentors", require("./routes/mentorRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/upload", require("./routes/uploadRoutes"));
 // Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "PT-Tutor API" });
-});
 
 const PORT = process.env.PORT || 5000;
 
