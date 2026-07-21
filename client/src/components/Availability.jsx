@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, IndianRupee, CalendarDays, Layers } from "lucide-react";
+import { AlertTriangle, IndianRupee, CalendarDays, Layers, Trash2 } from "lucide-react";
 import api from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -26,6 +26,21 @@ export default function Availability() {
       setMsg(r.data.message);
       load();
     } catch (e) { setErr(e.response?.data?.message || "Failed"); }
+  };
+const [confirmId, setConfirmId] = useState(null);
+
+  const deleteSlot = async (id) => {
+    setErr(""); setMsg("");
+    try {
+      await api.delete(`/mentors/slots/${id}`);
+      setMsg("Slot deleted");
+      setConfirmId(null);
+      load();
+    } catch (e) {
+      setErr(e.response?.data?.message || "Could not delete slot");
+      setConfirmId(null);
+      load();
+    }
   };
 
   const t = (d) => new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
@@ -76,12 +91,33 @@ export default function Availability() {
 
           <div className="mt-6 max-h-56 overflow-y-auto space-y-2">
             {slots.map((s) => (
-              <div key={s._id} className="flex items-center justify-between bg-card2 border border-line rounded-xl px-4 py-2.5 text-sm">
+              <div key={s._id} className="flex items-center justify-between gap-2 bg-card2 border border-line rounded-xl px-4 py-2.5 text-sm">
                 <span className="text-gray-300">{s.date} · {t(s.startTime)} · {s.durationMinutes}min · ₹{s.price}</span>
-                <span className={`text-[10px] tracking-widest uppercase rounded-full px-2.5 py-0.5 border ${
-                  s.status === "available" ? "text-green-400 border-green-500/40 bg-green-500/10"
-                  : s.status === "booked" ? "text-brand-400 border-brand-500/40 bg-brand-500/10"
-                  : "text-yellow-400 border-yellow-500/40 bg-yellow-500/10"}`}>{s.status}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-[10px] tracking-widest uppercase rounded-full px-2.5 py-0.5 border ${
+                    s.status === "available" ? "text-green-400 border-green-500/40 bg-green-500/10"
+                    : s.status === "booked" ? "text-brand-400 border-brand-500/40 bg-brand-500/10"
+                    : "text-yellow-400 border-yellow-500/40 bg-yellow-500/10"}`}>{s.status}</span>
+                  {s.status === "available" && (
+                    confirmId === s._id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => deleteSlot(s._id)}
+                          className="text-[10px] font-semibold text-red-400 border border-red-500/40 bg-red-500/10 rounded-full px-2 py-0.5">
+                          Delete
+                        </button>
+                        <button onClick={() => setConfirmId(null)}
+                          className="text-[10px] text-gray-500 hover:text-gray-300 px-1">
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmId(s._id)} title="Delete slot"
+                        className="text-gray-500 hover:text-red-400 transition-colors">
+                        <Trash2 size={15} />
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
             ))}
           </div>
