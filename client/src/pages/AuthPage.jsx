@@ -109,7 +109,7 @@ export default function AuthPage() {
             <span className="hidden md:inline"> Pick a slot, pay securely, get a meeting link. That's it.</span>
           </p>
 
-          <div className="space-y-2 md:space-y-3 max-w-xs md:max-w-md mx-auto md:mx-0">
+          <div className="space-y-2 md:space-y-3 w-fit mx-auto md:w-auto md:mx-0">
             {features.map(({ icon: Icon, text, short }, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.12 }}
