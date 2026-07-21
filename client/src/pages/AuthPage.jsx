@@ -4,6 +4,7 @@ import { GraduationCap, Smartphone, Lock, Zap, ShieldCheck } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { useAuth } from "../AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function AuthPage() {
   const [tab, setTab] = useState("signin");
@@ -45,6 +46,18 @@ export default function AuthPage() {
       nav("/");
     } catch (e) {
       setErr(e.response?.data?.message || "Something went wrong");
+    } finally { setLoading(false); }
+  };
+const loginWithGoogle = async (credential) => {
+    setErr(""); setLoading(true);
+    try {
+      const res = await api.post("/auth/google", { credential });
+      const { token, user } = res.data;
+      login(token, user);
+      await upgradeIfMentor(token, user);
+      nav("/");
+    } catch (e) {
+      setErr(e.response?.data?.message || "Google sign-in failed");
     } finally { setLoading(false); }
   };
 
@@ -214,6 +227,20 @@ export default function AuthPage() {
                   className="w-full mt-4 text-sm text-gray-400 hover:text-white transition-colors">
                   {mode === "password" ? "Use OTP instead" : "Use password instead"}
                 </button>
+                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-line" />
+                  <span className="text-xs text-gray-500">or</span>
+                  <div className="flex-1 h-px bg-line" />
+                </div>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={(cred) => loginWithGoogle(cred.credential)}
+                    onError={() => setErr("Google sign-in failed")}
+                    theme="filled_black"
+                    shape="pill"
+                    text="continue_with"
+                  />
+                </div>
 
                <p className="text-[11px] text-gray-500 text-center mt-5 leading-relaxed font-mono">
                   Demo accounts:{" "}
