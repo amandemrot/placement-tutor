@@ -227,20 +227,24 @@ const loginWithGoogle = async (credential) => {
                   className="w-full mt-4 text-sm text-gray-400 hover:text-white transition-colors">
                   {mode === "password" ? "Use OTP instead" : "Use password instead"}
                 </button>
-                <div className="flex items-center gap-3 my-4">
-                  <div className="flex-1 h-px bg-line" />
-                  <span className="text-xs text-gray-500">or</span>
-                  <div className="flex-1 h-px bg-line" />
-                </div>
-                <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={(cred) => loginWithGoogle(cred.credential)}
-                    onError={() => setErr("Google sign-in failed")}
-                    theme="filled_black"
-                    shape="pill"
-                    text="continue_with"
-                  />
-                </div>
+               {role !== "mentor" && (
+                  <>
+                    <div className="flex items-center gap-3 my-4">
+                      <div className="flex-1 h-px bg-line" />
+                      <span className="text-xs text-gray-500">or</span>
+                      <div className="flex-1 h-px bg-line" />
+                    </div>
+                    <div className="flex justify-center">
+                      <GoogleLogin
+                        onSuccess={(cred) => loginWithGoogle(cred.credential)}
+                        onError={() => setErr("Google sign-in failed")}
+                        theme="filled_black"
+                        shape="pill"
+                        text="continue_with"
+                      />
+                    </div>
+                  </>
+                )}
 
                <p className="text-[11px] text-gray-500 text-center mt-5 leading-relaxed font-mono">
                   Demo accounts:{" "}
