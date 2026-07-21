@@ -78,9 +78,9 @@ export default function AuthPage() {
     : email && (tab === "signin" || name);
 
   const features = [
-    { icon: Lock, text: "Atomic slot locking — no double bookings, ever" },
-    { icon: ShieldCheck, text: "Secure Razorpay payments with signature verification" },
-    { icon: Zap, text: "OTP or password login. Your choice." },
+    { icon: Lock, text: "Atomic slot locking — no double bookings, ever", short: "No double bookings, ever" },
+    { icon: ShieldCheck, text: "Secure Razorpay payments with signature verification", short: "Secure Razorpay payments" },
+    { icon: Zap, text: "OTP or password login. Your choice.", short: "OTP or password login" },
   ];
 
   return (
@@ -96,7 +96,7 @@ export default function AuthPage() {
           </div>
 
           <h1 style={{ fontFamily: "'Unbounded', sans-serif", letterSpacing: "-0.02em" }}
-            className="text-4xl md:text-6xl font-black text-white leading-[1.05] mb-6">
+            className="text-[2rem] leading-[1.1] md:text-6xl md:leading-[1.05] font-black text-white mb-4 md:mb-6">
             Crack your dream{" "}
             <span className="bg-gradient-to-r from-fuchsia-400 via-purple-400 to-brand-500 bg-clip-text text-transparent">
               placement
@@ -104,20 +104,23 @@ export default function AuthPage() {
             with 1:1 mentors.
           </h1>
 
-          <p className="text-gray-400 text-base md:text-lg mb-8 max-w-md mx-auto md:mx-0">
-            Book verified mentors from top companies. Pick a slot, pay securely,
-            get a meeting link. That's it.
+          <p className="text-gray-400 text-sm md:text-lg mb-5 md:mb-8 max-w-xs md:max-w-md mx-auto md:mx-0">
+            Book verified mentors from top companies.
+            <span className="hidden md:inline"> Pick a slot, pay securely, get a meeting link. That's it.</span>
           </p>
 
-          <div className="space-y-3 max-w-md mx-auto md:mx-0">
-            {features.map(({ icon: Icon, text }, i) => (
+          <div className="space-y-2 md:space-y-3 max-w-xs md:max-w-md mx-auto md:mx-0">
+            {features.map(({ icon: Icon, text, short }, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.12 }}
-                className="flex items-center gap-3 text-left">
-                <div className="w-9 h-9 shrink-0 rounded-lg bg-card2 border border-line flex items-center justify-center">
-                  <Icon size={16} className="text-brand-400" />
+                className="flex items-center gap-2.5 md:gap-3 text-left">
+                <div className="w-7 h-7 md:w-9 md:h-9 shrink-0 rounded-lg bg-card2 border border-line flex items-center justify-center">
+                  <Icon size={14} className="text-brand-400" />
                 </div>
-                <span className="text-sm text-gray-300">{text}</span>
+                <span className="text-xs md:text-sm text-gray-300">
+                  <span className="md:hidden">{short}</span>
+                  <span className="hidden md:inline">{text}</span>
+                </span>
               </motion.div>
             ))}
           </div>
