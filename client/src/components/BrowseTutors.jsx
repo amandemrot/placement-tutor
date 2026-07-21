@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Star, BadgeCheck, X, Clock } from "lucide-react";
 import confetti from "canvas-confetti";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 
 export default function BrowseTutors() {
   const [mentors, setMentors] = useState([]);
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(null); // mentor being booked
+  const nav = useNavigate();
 
   useEffect(() => {
     api.get("/mentors").then((r) => setMentors(r.data)).catch(() => {});
@@ -43,7 +45,8 @@ export default function BrowseTutors() {
         {filtered.map((m, i) => (
           <motion.div key={m._id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }} whileHover={{ y: -6 }}
-            className="glass rounded-2xl p-6 hover:glow transition-shadow flex flex-col h-full">
+            onClick={() => nav(`/mentors/${m._id}`)}
+            className="glass rounded-2xl p-6 hover:glow transition-shadow flex flex-col h-full cursor-pointer">
             <div className="flex items-center gap-4 mb-4">
               <img
                 src={m.mentorProfile?.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`}
@@ -67,7 +70,7 @@ export default function BrowseTutors() {
             </div>
             <div className="flex items-center justify-between mt-auto">
               <p className="text-2xl font-bold text-white">₹{m.mentorProfile?.pricePerHour}<span className="text-sm text-gray-400">/hr</span></p>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSel(m)}
+              <motion.button whileTap={{ scale: 0.95 }} onClick={(e) => { e.stopPropagation(); setSel(m); }}
                 className="px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-400 glow">
                 Book Mentorship
               </motion.button>
@@ -81,7 +84,7 @@ export default function BrowseTutors() {
   );
 }
 
-function BookingModal({ mentor, onClose }) {
+export function BookingModal({ mentor, onClose }) {
   const [slots, setSlots] = useState([]);
   const [slot, setSlot] = useState(null);
   const [stage, setStage] = useState("pick"); // pick | pay | done

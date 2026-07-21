@@ -44,7 +44,7 @@ export default function MyProfile() {
   return (
     <div>
       <motion.h1 initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-        className="text-5xl font-bold text-white">My Profile</motion.h1>
+        className="text-3xl md:text-5xl font-bold text-white">My Profile</motion.h1>
       <p className="text-gray-400 mt-2 mb-8">View and edit your details.</p>
 
       <div className="glass rounded-2xl p-8 max-w-2xl">

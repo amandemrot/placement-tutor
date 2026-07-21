@@ -27,24 +27,13 @@ exports.listMentors = async (req, res) => {
     const mentors = await User.find({
       role: "mentor",
       "mentorProfile.verificationStatus": "approved",
-    }).select("name avatar mentorProfile");
+}).select("-password -otp -otpExpires -googleId -mentorProfile.phone -mentorProfile.verificationDoc -mentorProfile.earnings");
     res.json(mentors);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// GET /api/mentors/:id
-exports.getMentor = async (req, res) => {
-  try {
-    const mentor = await User.findOne({ _id: req.params.id, role: "mentor" })
-      .select("name avatar mentorProfile");
-    if (!mentor) return res.status(404).json({ message: "Mentor not found" });
-    res.json(mentor);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
 
 // POST /api/mentors/availability
 // { date:"2026-07-20", startTime:"10:00", endTime:"12:00", durationMinutes:30 }
@@ -91,6 +80,32 @@ exports.addAvailability = async (req, res) => {
   }
 };
 
+// GET /api/mentors/:id
+exports.getMentor = async (req, res) => {
+  try {
+    const mentor = await User.findOne({
+      _id: req.params.id,
+      role: "mentor",
+      "mentorProfile.verificationStatus": "approved",
+    }).select("-password -otp -otpExpires -googleId -mentorProfile.verificationDoc -mentorProfile.earnings");
+    if (!mentor) return res.status(404).json({ message: "Mentor not found" });
+
+    const obj = mentor.toObject();
+    const phone = obj.mentorProfile?.phone || "";
+    const email = obj.email || "";
+    // send masked hints only, strip the real values
+    obj.contactHints = {
+      phone: phone ? `${phone.slice(0, 4)} - ${"*".repeat(Math.max(phone.length - 6, 2))} - ${phone.slice(-2)}` : null,
+      email: email ? `${email.slice(0, 6)}*****${email.slice(email.indexOf("@"))}` : null,
+    };
+    if (obj.mentorProfile) delete obj.mentorProfile.phone;
+    delete obj.email;
+
+    res.json(obj);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // GET /api/mentors/:id/slots?date=2026-07-20  (public: available only)
 exports.getMentorSlots = async (req, res) => {
   try {
@@ -106,7 +121,6 @@ exports.getMentorSlots = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 // GET /api/mentors/my/slots  (mentor's own, all statuses)
 exports.getMySlots = async (req, res) => {
   try {
