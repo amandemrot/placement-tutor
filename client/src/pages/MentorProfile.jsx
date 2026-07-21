@@ -16,8 +16,15 @@ export default function MentorProfile() {
   const [booking, setBooking] = useState(false);
   const [tab, setTab] = useState("intro");
 
+  const [others, setOthers] = useState([]);
+
   useEffect(() => {
+    window.scrollTo(0, 0);
+    setM(null);
     api.get(`/mentors/${id}`).then((r) => setM(r.data)).catch(() => setNotFound(true));
+    api.get("/mentors")
+      .then((r) => setOthers(r.data.filter((x) => x._id !== id).slice(0, 4)))
+      .catch(() => {});
   }, [id]);
 
   if (notFound)
@@ -203,14 +210,46 @@ export default function MentorProfile() {
               )}
             </div>
             <div className="mt-5 pt-4 border-t border-line">
-              <p className="text-xs text-gray-500 flex items-start gap-2">
-                <Lock size={13} className="shrink-0 mt-0.5" />
-                Full contact details and the meeting link are shared once you book a session.
-              </p>
+              {m.unlocked ? (
+                <p className="text-xs text-green-400 flex items-start gap-2">
+                  <BadgeCheck size={13} className="shrink-0 mt-0.5" />
+                  Unlocked — you have a session booked with {m.name.split(" ")[0]}.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 flex items-start gap-2">
+                  <Lock size={13} className="shrink-0 mt-0.5" />
+                  Full contact details and the meeting link are shared once you book a session.
+                </p>
+              )}
             </div>
           </motion.div>
         </div>
       </div>
+
+      {others.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl md:text-2xl font-bold text-white">Explore other mentors</h2>
+          <p className="text-gray-500 text-sm mt-1 mb-6">
+            Verified mentors from top companies and campuses
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {others.map((o) => (
+              <motion.div key={o._id} whileHover={{ y: -4 }}
+                onClick={() => nav(`/mentors/${o._id}`)}
+                className="glass rounded-2xl p-4 text-center cursor-pointer hover:glow transition-shadow">
+                <img
+                  src={o.mentorProfile?.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(o.name)}`}
+                  alt={o.name}
+                  className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 object-cover mb-3"
+                />
+                <p className="font-semibold text-white text-sm truncate">{o.name}</p>
+                <p className="text-xs text-gray-400 truncate">{o.mentorProfile?.company || o.mentorProfile?.college || "Mentor"}</p>
+                <p className="text-sm font-bold text-white mt-2">₹{o.mentorProfile?.pricePerHour}<span className="text-xs text-gray-500">/hr</span></p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {booking && <BookingModal mentor={m} onClose={() => setBooking(false)} />}

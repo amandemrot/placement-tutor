@@ -14,6 +14,6 @@ router.post("/availability", protect, authorize("mentor"), addAvailability);
 router.get("/my/slots", protect, authorize("mentor"), getMySlots);
 router.delete("/slots/:slotId", protect, authorize("mentor"), deleteSlot);
 router.get("/:id/slots", getMentorSlots);
-router.get("/:id", getMentor);
+router.get("/:id", protect, getMentor);
 
 module.exports = router;

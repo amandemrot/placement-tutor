@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Slot = require("../models/Slot");
+const Booking = require("../models/Booking");
 
 // POST /api/mentors/become  (any logged-in user applies as mentor)
 exports.becomeMentor = async (req, res) => {
@@ -93,13 +94,26 @@ exports.getMentor = async (req, res) => {
     const obj = mentor.toObject();
     const phone = obj.mentorProfile?.phone || "";
     const email = obj.email || "";
-    // send masked hints only, strip the real values
-    obj.contactHints = {
-      phone: phone ? `${phone.slice(0, 4)} - ${"*".repeat(Math.max(phone.length - 6, 2))} - ${phone.slice(-2)}` : null,
-      email: email ? `${email.slice(0, 6)}*****${email.slice(email.indexOf("@"))}` : null,
-    };
-    if (obj.mentorProfile) delete obj.mentorProfile.phone;
-    delete obj.email;
+
+    // unlocked only if this student has an active booking with this mentor
+    const hasBooking = await Booking.exists({
+      student: req.user._id,
+      mentor: mentor._id,
+      status: { $in: ["confirmed", "completed"] },
+    });
+
+    obj.unlocked = !!hasBooking;
+    obj.contactHints = hasBooking
+      ? { phone: phone || null, email: email || null }
+      : {
+          phone: phone ? `${phone.slice(0, 4)} - ${"*".repeat(Math.max(phone.length - 6, 2))} - ${phone.slice(-2)}` : null,
+          email: email ? `${email.slice(0, 2)}*****${email.slice(email.indexOf("@"))}` : null,
+        };
+
+    if (!hasBooking) {
+      if (obj.mentorProfile) delete obj.mentorProfile.phone;
+      delete obj.email;
+    }
 
     res.json(obj);
   } catch (err) {
