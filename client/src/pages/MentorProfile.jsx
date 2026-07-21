@@ -106,7 +106,11 @@ export default function MentorProfile() {
                   {p.bio && (
                     <section>
                       <h2 className="text-lg font-bold text-white mb-3">A brief introduction</h2>
-                      <p className="text-gray-300 leading-relaxed">{p.bio}</p>
+                      <div className="space-y-4">
+                        {p.bio.split("\n\n").slice(0, 2).map((para, i) => (
+                          <p key={i} className="text-gray-300 leading-relaxed">{para.trim()}</p>
+                        ))}
+                      </div>
                       {p.linkedIn && (
                         <a href={p.linkedIn} target="_blank" rel="noreferrer"
                           className="inline-flex items-center gap-2 text-brand-400 hover:text-white text-sm mt-3">
