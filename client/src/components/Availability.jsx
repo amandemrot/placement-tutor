@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, IndianRupee, CalendarDays, Layers, Trash2 } from "lucide-react";
+import { AlertTriangle, IndianRupee, CalendarDays, Layers, Trash2, ChevronDown } from "lucide-react";
 import api from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -23,11 +23,13 @@ export default function Availability() {
       const r = await api.post("/mentors/availability", {
         date, startTime: start, endTime: end, durationMinutes: dur,
       });
-      setMsg(r.data.message);
+      setMsg(`${r.data.message} — see "My Slots" below`);
+      setShowSlots(true);
       load();
     } catch (e) { setErr(e.response?.data?.message || "Failed"); }
   };
 const [confirmId, setConfirmId] = useState(null);
+  const [showSlots, setShowSlots] = useState(false);
 
   const deleteSlot = async (id) => {
     setErr(""); setMsg("");
@@ -89,7 +91,13 @@ const [confirmId, setConfirmId] = useState(null);
             <Layers size={18} /> Split & Create Slots
           </motion.button>
 
-          <div className="mt-6 max-h-56 overflow-y-auto space-y-2">
+          <button onClick={() => setShowSlots(!showSlots)}
+            className="md:hidden w-full mt-4 flex items-center justify-between px-4 py-3 rounded-xl bg-card2 border border-line text-sm font-semibold text-gray-300">
+            <span>My Slots ({slots.length})</span>
+            <ChevronDown size={16} className={`transition-transform ${showSlots ? "rotate-180" : ""}`} />
+          </button>
+
+          <div className={`mt-4 md:mt-6 space-y-2 md:max-h-56 md:overflow-y-auto ${showSlots ? "block" : "hidden"} md:block`}>
             {slots.map((s) => (
               <div key={s._id} className="flex items-center justify-between gap-2 bg-card2 border border-line rounded-xl px-4 py-2.5 text-sm">
                 <span className="text-gray-300">{s.date} · {t(s.startTime)} · {s.durationMinutes}min · ₹{s.price}</span>
