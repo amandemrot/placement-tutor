@@ -33,8 +33,9 @@ const sendOtp = async (email, otp) => {
 // POST /api/auth/request-otp  { email, name? }
 exports.requestOtp = async (req, res) => {
   try {
-    const { email, name } = req.body;
+    let { email, name } = req.body;
     if (!email) return res.status(400).json({ message: "Email required" });
+    email = email.trim().toLowerCase();
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -57,7 +58,8 @@ exports.requestOtp = async (req, res) => {
 // POST /api/auth/verify-otp  { email, otp }
 exports.verifyOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+   let { email, otp } = req.body;
+    email = email?.trim().toLowerCase();
     const user = await User.findOne({ email }).select("+otp +otpExpires");
     if (!user || user.otp !== otp || user.otpExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -141,7 +143,8 @@ exports.updateProfile = async (req, res) => {
 // POST /api/auth/register  { name, email, password, role? }
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    let { name, email, password, role } = req.body;
+    email = email?.trim().toLowerCase();
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password are required" });
     }
@@ -185,10 +188,11 @@ exports.register = async (req, res) => {
 // POST /api/auth/login  { email, password }
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
+    email = email.trim().toLowerCase();
 
     const user = await User.findOne({ email }).select("+password");
     if (!user || !user.password) {

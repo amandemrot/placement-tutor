@@ -188,6 +188,9 @@ export default function AuthPage() {
                       </button>
                     ))}
                   </div>
+                  <p className="text-[10px] text-gray-500 mt-1.5">
+                    Admins are detected automatically — any toggle works.
+                  </p>
                 </div>
 
                 {err && <p className="text-red-400 text-sm mb-3">{err}</p>}
