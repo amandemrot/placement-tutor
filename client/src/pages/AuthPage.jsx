@@ -64,7 +64,7 @@ const loginWithGoogle = async (credential) => {
   const requestOtp = async () => {
     setErr(""); setLoading(true);
     try {
-      const body = tab === "signup" ? { email, name } : { email };
+      const body = tab === "signup" ? { email, name, isSignup: true } : { email };
       const res = await api.post("/auth/request-otp", body);
       if (res.data.devOtp) setDevOtp(res.data.devOtp);
       setStep("otp");
@@ -78,6 +78,11 @@ const loginWithGoogle = async (credential) => {
     try {
       const res = await api.post("/auth/verify-otp", { email, otp });
       const { token, user } = res.data;
+      if (tab === "signin" && user.role !== role && user.role !== "admin") {
+        setErr(`This account is registered as a ${user.role}. Switch the toggle.`);
+        setLoading(false);
+        return;
+      }
       login(token, user);
       await upgradeIfMentor(token, user);
       nav("/");

@@ -39,8 +39,12 @@ exports.requestOtp = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+   const { isSignup } = req.body;
     let user = await User.findOne({ email });
     if (!user) {
+      if (!isSignup) {
+        return res.status(404).json({ message: "No account found with this email. Please create an account first." });
+      }
       user = await User.create({ email, name: name || email.split("@")[0] });
     }
     user.otp = otp;
