@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, ChevronDown } from "lucide-react";
 import api from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -108,11 +108,14 @@ export function Select({ label, value, onChange, options, placeholder }) {
   return (
     <div>
       <label className="text-xs tracking-widest text-gray-400">{label}</label>
-      <select value={value} onChange={onChange}
-        className="w-full mt-1 bg-card2 border border-line rounded-xl px-4 py-3 outline-none focus:border-brand-500 [color-scheme:dark]">
-        <option value="">{placeholder}</option>
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
+      <div className="relative mt-1">
+        <select value={value} onChange={onChange}
+          className="w-full bg-card2 border border-line rounded-xl px-4 py-3 pr-11 outline-none focus:border-brand-500 [color-scheme:dark]">
+          <option value="">{placeholder}</option>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" />
+      </div>
     </div>
   );
 }

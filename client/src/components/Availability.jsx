@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, IndianRupee, CalendarDays, Layers, Trash2, ChevronDown } from "lucide-react";
+import { AlertTriangle, IndianRupee, CalendarDays, Layers, Trash2, ChevronDown, Clock } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import api from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -13,6 +15,8 @@ export default function Availability() {
   const [slots, setSlots] = useState([]);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [showSlots, setShowSlots] = useState(false);
 
   const load = () => api.get("/mentors/my/slots").then((r) => setSlots(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -28,8 +32,6 @@ export default function Availability() {
       load();
     } catch (e) { setErr(e.response?.data?.message || "Failed"); }
   };
-const [confirmId, setConfirmId] = useState(null);
-  const [showSlots, setShowSlots] = useState(false);
 
   const deleteSlot = async (id) => {
     setErr(""); setMsg("");
@@ -59,21 +61,45 @@ const [confirmId, setConfirmId] = useState(null);
         <div className="glass rounded-2xl p-6 flex-1">
           <div className="mb-4">
             <label className="text-xs tracking-widest text-gray-400">DATE</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-              className="w-full mt-1 bg-card2 border border-line rounded-xl px-4 py-3 outline-none focus:border-brand-500 [color-scheme:dark]" />
+            <div className="relative mt-1">
+              <DatePicker
+                selected={date ? new Date(date + "T00:00:00") : null}
+                onChange={(d) => {
+                  if (!d) { setDate(""); return; }
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, "0");
+                  const day = String(d.getDate()).padStart(2, "0");
+                  setDate(`${y}-${m}-${day}`);
+                }}
+                dateFormat="dd MMM yyyy"
+                placeholderText="Select a date"
+                minDate={new Date()}
+                wrapperClassName="w-full block"
+                className="w-full bg-card2 border border-line rounded-xl px-4 py-3 pr-11 text-white outline-none focus:border-brand-500"
+              />
+              <CalendarDays size={17} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" />
+            </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="text-xs tracking-widest text-gray-400">START TIME</label>
-              <input type="time" value={start} onChange={(e) => setStart(e.target.value)}
-                className="w-full mt-1 bg-card2 border border-line rounded-xl px-4 py-3 outline-none focus:border-brand-500 [color-scheme:dark]" />
+              <div className="relative mt-1">
+                <input type="time" value={start} onChange={(e) => setStart(e.target.value)}
+                  className="w-full bg-card2 border border-line rounded-xl px-4 py-3 pr-11 outline-none focus:border-brand-500 [color-scheme:dark]" />
+                <Clock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" />
+              </div>
             </div>
             <div>
               <label className="text-xs tracking-widest text-gray-400">END TIME</label>
-              <input type="time" value={end} onChange={(e) => setEnd(e.target.value)}
-                className="w-full mt-1 bg-card2 border border-line rounded-xl px-4 py-3 outline-none focus:border-brand-500 [color-scheme:dark]" />
+              <div className="relative mt-1">
+                <input type="time" value={end} onChange={(e) => setEnd(e.target.value)}
+                  className="w-full bg-card2 border border-line rounded-xl px-4 py-3 pr-11 outline-none focus:border-brand-500 [color-scheme:dark]" />
+                <Clock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" />
+              </div>
             </div>
           </div>
+
           <label className="text-xs tracking-widest text-gray-400">SLOT DURATION</label>
           <div className="flex gap-3 mt-1 mb-6">
             {[15, 30, 60].map((d) => (
@@ -84,11 +110,13 @@ const [confirmId, setConfirmId] = useState(null);
               </button>
             ))}
           </div>
+
           {err && <p className="text-red-400 text-sm mb-3">{err}</p>}
           {msg && <p className="text-green-400 text-sm mb-3">{msg}</p>}
+
           <motion.button whileTap={{ scale: 0.97 }} onClick={createSlots} disabled={!date}
             className="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-400 glow disabled:opacity-40 flex items-center justify-center gap-2">
-            <Layers size={18} /> Split & Create Slots
+            <Layers size={18} /> Split &amp; Create Slots
           </motion.button>
 
           <button onClick={() => setShowSlots(!showSlots)}
