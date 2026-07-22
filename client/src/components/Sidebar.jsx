@@ -31,9 +31,10 @@ export default function Sidebar({ items, active, onSelect }) {
       )}
 
       {/* Sidebar / drawer */}
-      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-72 h-[100dvh] md:h-auto md:min-h-screen glass border-r border-line p-5 pb-8 flex flex-col overflow-hidden
-        transform transition-transform duration-200 md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center gap-3 mb-6">
+      <aside style={{ touchAction: "none" }}
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 h-[100dvh] md:h-auto md:min-h-screen glass border-r border-line p-5 pb-6 flex flex-col overflow-hidden overscroll-none
+        transform transition-transform duration-200 md:translate-x-0 md:[touch-action:auto] ${open ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center gap-3 mb-4 md:mb-6">
           <div className="w-11 h-11 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center glow">
             <GraduationCap className="text-white" size={22} />
           </div>
@@ -45,7 +46,7 @@ export default function Sidebar({ items, active, onSelect }) {
             <X size={20} />
           </button>
         </div>
-        <div className="bg-card2 border border-line rounded-xl p-4 mb-6 flex items-center gap-3">
+        <div className="bg-card2 border border-line rounded-xl p-4 mb-4 md:mb-6 flex items-center gap-3">
           {user?.mentorProfile?.photo && (
             <img src={user.mentorProfile.photo} alt={user?.name}
               className="w-11 h-11 rounded-xl object-cover shrink-0" />
