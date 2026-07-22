@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, Smartphone, Lock, Zap, ShieldCheck } from "lucide-react";
+import { GraduationCap, Smartphone, Lock, Zap, ShieldCheck, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { useAuth } from "../AuthContext";
@@ -109,7 +109,7 @@ const loginWithGoogle = async (credential) => {
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }} className="text-center md:text-left">
           <div className="inline-flex items-center gap-2 bg-card2 border border-line rounded-full px-4 py-1.5 mb-6">
-            <span className="text-brand-400">✦</span>
+            <Users size={13} className="text-brand-400" />
             <span className="text-xs text-gray-300 tracking-wide">1:1 mentorship for campus placements</span>
           </div>
 
