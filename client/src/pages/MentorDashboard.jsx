@@ -218,7 +218,7 @@ export default function MentorDashboard() {
   return (
     <div className="flex">
       <Sidebar items={items} active={tab} onSelect={setTab} />
-      <main className="flex-1 p-4 pt-20 md:p-10 md:pt-10 max-h-screen overflow-y-auto">
+      <main className="flex-1 p-4 pt-24 pb-16 md:p-10 md:pt-10 md:h-screen md:overflow-y-auto">
         {tab === "availability" && <Availability />}
         {tab === "earnings" && <Earnings />}
         {tab === "profile" && <MentorProfile profile={profile} />}

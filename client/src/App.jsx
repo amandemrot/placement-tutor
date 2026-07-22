@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Onboarding from "./pages/Onboarding";
 import MentorOnboarding from "./pages/MentorOnboarding";
 import MentorProfile from "./pages/MentorProfile";
+import ScrollToTop from "./components/ScrollToTop";
 
 function Protected({ children, role }) {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ function Home() {
 export default function App() {
   return (
     <div className="min-h-screen aurora">
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<AuthPage />} />
