@@ -4,6 +4,7 @@ const Booking = require("../models/Booking");
 const User = require("../models/User");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
+const { sendBookingConfirmation, sendMentorNotification, isDemo } = require("../utils/mailer");
 
 const LOCK_MINUTES = 7;
 const paymentsEnabled = () =>
@@ -137,10 +138,49 @@ exports.confirmBooking = async (req, res) => {
     });
 
     // credit mentor earnings
+  // credit mentor earnings
     await User.updateOne(
       { _id: slot.mentor },
       { $inc: { "mentorProfile.earnings": slot.price } }
     );
+
+    // confirmation emails (never block the response)
+    (async () => {
+      try {
+        const [student, mentor] = await Promise.all([
+          User.findById(req.user._id).select("name email"),
+          User.findById(slot.mentor).select("name email mentorProfile.company"),
+        ]);
+        const time = new Date(slot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        const common = {
+          date: slot.date,
+          time,
+          duration: slot.durationMinutes,
+          amount: slot.price,
+          meetingLink: booking.meetingLink,
+        };
+
+        if (student?.email && !isDemo(student.email)) {
+          await sendBookingConfirmation({
+            ...common,
+            to: student.email,
+            studentName: student.name,
+            mentorName: mentor?.name || "your mentor",
+            company: mentor?.mentorProfile?.company,
+          });
+        }
+        if (mentor?.email && !isDemo(mentor.email)) {
+          await sendMentorNotification({
+            ...common,
+            to: mentor.email,
+            mentorName: mentor.name,
+            studentName: student?.name || "A student",
+          });
+        }
+      } catch (e) {
+        console.error("Booking mail failed:", e.message);
+      }
+    })();
 
     res.json({ message: "Booking confirmed 🎉", booking });
   } catch (err) {

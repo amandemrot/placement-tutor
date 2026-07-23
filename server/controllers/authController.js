@@ -1,45 +1,35 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const { OAuth2Client } = require("google-auth-library");
+const { sendOtpMail, isDemo } = require("../utils/mailer");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// ---- helper: send OTP (email if creds exist, else console) ----
+// ---- helper: send OTP (demo accounts skip email; everyone else gets a real one) ----
 const sendOtp = async (email, otp) => {
-  if (!process.env.BREVO_API_KEY) {
+  if (isDemo(email) || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.log(`🔑 [DEV MODE] OTP for ${email}: ${otp}`);
-    return;
+    return { emailed: false };
   }
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "api-key": process.env.BREVO_API_KEY,
-      "Content-Type": "application/json",
-      "accept": "application/json",
-    },
-    body: JSON.stringify({
-      sender: { name: "PT-Tutor", email: process.env.EMAIL_USER },
-      to: [{ email }],
-      subject: "Your PT-Tutor Login OTP",
-      htmlContent: `<h2>Your OTP: <b>${otp}</b></h2><p>Valid for 10 minutes.</p>`,
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Brevo failed: ${res.status} ${err}`);
+  try {
+    await sendOtpMail(email, otp);
+    return { emailed: true };
+  } catch (err) {
+    console.error("Mail failed:", err.message);
+    console.log(`🔑 [FALLBACK] OTP for ${email}: ${otp}`);
+    return { emailed: false };
   }
 };
 
-// POST /api/auth/request-otp  { email, name? }
+// POST /api/auth/request-otp  { email, name?, isSignup? }
 exports.requestOtp = async (req, res) => {
   try {
-    let { email, name } = req.body;
+    let { email, name, isSignup } = req.body;
     if (!email) return res.status(400).json({ message: "Email required" });
     email = email.trim().toLowerCase();
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-   const { isSignup } = req.body;
     let user = await User.findOne({ email });
     if (!user) {
       if (!isSignup) {
@@ -51,9 +41,11 @@ exports.requestOtp = async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendOtp(email, otp);
-    const devMode = !process.env.BREVO_API_KEY;
-    res.json({ message: "OTP sent", ...(devMode && { devOtp: otp }) });
+    const { emailed } = await sendOtp(email, otp);
+    res.json({
+      message: emailed ? "OTP sent to your email" : "OTP generated",
+      ...(!emailed && { devOtp: otp }),
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -62,7 +54,7 @@ exports.requestOtp = async (req, res) => {
 // POST /api/auth/verify-otp  { email, otp }
 exports.verifyOtp = async (req, res) => {
   try {
-   let { email, otp } = req.body;
+    let { email, otp } = req.body;
     email = email?.trim().toLowerCase();
     const user = await User.findOne({ email }).select("+otp +otpExpires");
     if (!user || user.otp !== otp || user.otpExpires < new Date()) {
@@ -114,7 +106,8 @@ exports.googleLogin = async (req, res) => {
 exports.getMe = async (req, res) => {
   res.json(req.user);
 };
-// PUT /api/auth/profile  { name, about, fieldOfInterest, collegeYear, careerGoal }
+
+// PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
     const { name, about, fieldOfInterest, college, year, careerGoal } = req.body;
@@ -136,7 +129,7 @@ exports.updateProfile = async (req, res) => {
       message: "Profile saved",
       user: {
         id: user._id, name: user.name, email: user.email, role: user.role,
-       avatar: user.avatar, profileCompleted: user.profileCompleted,
+        avatar: user.avatar, profileCompleted: user.profileCompleted,
         studentProfile: user.studentProfile, mentorProfile: user.mentorProfile,
       },
     });
@@ -144,6 +137,7 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 // POST /api/auth/register  { name, email, password, role? }
 exports.register = async (req, res) => {
   try {
@@ -163,7 +157,6 @@ exports.register = async (req, res) => {
 
     let user;
     if (existing) {
-      // OTP-only account exists — attach a password to it
       existing.password = password;
       existing.name = existing.name || name;
       if (role === "mentor") existing.role = "mentor";
