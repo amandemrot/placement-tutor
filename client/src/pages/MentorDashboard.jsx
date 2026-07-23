@@ -1,11 +1,123 @@
 import { useEffect, useState, useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Clock, IndianRupee, UserCircle, Hourglass, LogOut, XCircle, PartyPopper, MapPin, Briefcase, GraduationCap, BadgeCheck } from "lucide-react";
+import { Clock, IndianRupee, UserCircle, Hourglass, LogOut, XCircle, PartyPopper, MapPin, Briefcase, GraduationCap, BadgeCheck, CalendarCheck, Video, X } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Availability from "../components/Availability";
 import Earnings from "../components/Earnings";
 import { useAuth } from "../AuthContext";
 import api from "../api";
+
+function MentorBookings() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    api.get("/bookings/mentor")
+      .then((r) => setBookings(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+  const [sub, setSub] = useState("upcoming");
+  if (loading)
+    return <p className="text-gray-400">Loading…</p>;
+  const all = bookings.filter((b) => b.status === "confirmed");
+  const now = new Date();
+  const upcoming = all.filter((b) => b.slot && new Date(b.slot.startTime) > now);
+  const past = all.filter((b) => !b.slot || new Date(b.slot.startTime) <= now);
+  const confirmed = sub === "upcoming" ? upcoming : past;
+  return (
+    <div className="max-w-6xl">
+      <h1 className="text-3xl font-bold text-white mb-1">My Bookings</h1>
+      <p className="text-gray-400 mb-8">Sessions students have booked with you.</p>
+      <div className="flex gap-3 mb-6">
+        <button onClick={() => setSub("upcoming")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "upcoming" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
+          Upcoming ({upcoming.length})
+        </button>
+        <button onClick={() => setSub("past")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "past" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
+          Past ({past.length})
+        </button>
+      </div>
+      {confirmed.length === 0 ? (
+        <div className="bg-card2 border border-line rounded-2xl p-10 text-center text-gray-400">
+          No bookings yet. Once a student books your slot, it will appear here.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {confirmed.map((b) => (
+            <div key={b._id} className="bg-card2 border border-line rounded-2xl p-6">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                <img
+                  src={b.student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(b.student?.name || "student")}`}
+                  alt={b.student?.name}
+                  className="w-14 h-14 rounded-2xl object-cover border border-line"
+                />
+                <div className="flex-1">
+                  <p className="text-white font-bold">{b.student?.name}</p>
+                  <p className="text-gray-400 text-sm break-all">{b.student?.email}</p>
+                </div>
+                <div className="text-sm text-gray-300">
+                  <p>{b.slot?.date}</p>
+                  <p className="text-gray-500">
+                    {b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"} · {b.slot?.durationMinutes} min
+                  </p>
+                </div>
+                <div className="text-sm">
+                  <p className="text-white font-bold">₹{b.amount}</p>
+                  {sub === "past" ? (
+                    <span className="text-[11px] bg-gray-500/15 text-gray-400 border border-gray-500/40 rounded-full px-2 py-0.5">COMPLETED</span>
+                  ) : (
+                    <span className="text-[11px] bg-green-500/15 text-green-400 border border-green-500/40 rounded-full px-2 py-0.5">CONFIRMED</span>
+                  )}
+                </div>
+                {sub === "upcoming" && b.meetingLink && (
+                  <a href={b.meetingLink} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-2 text-brand-400 hover:text-white text-sm font-semibold">
+                    <Video size={16} /> Join
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CongratsModal({ firstTime, count, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-card2 border border-line rounded-2xl p-8 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center">
+          <PartyPopper className="text-green-400" size={28} />
+        </div>
+        {firstTime ? (
+          <>
+            <h1 className="text-2xl font-bold text-white mb-2">Congratulations on your first booking! 🎉</h1>
+            <p className="text-gray-400 mb-4">A student has booked a session with you. Here's a quick reminder of what's expected:</p>
+            <ul className="text-left text-sm text-gray-300 space-y-2 mb-6 list-disc list-inside">
+              <li>Join the session on time using the meeting link.</li>
+              <li>Be professional and respectful throughout.</li>
+              <li>Do not share the student's personal information.</li>
+              <li>Your earnings are credited after the session completes.</li>
+              <li>Repeated cancellations may lead to account suspension.</li>
+            </ul>
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-white mb-2">Congratulations! 🎉</h1>
+            <p className="text-gray-400 mb-6">{count === 1 ? "A new session has been booked with you." : `${count} new sessions have been booked with you.`} Check My Bookings for details.</p>
+          </>
+        )}
+        <button onClick={onClose}
+          className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-400 glow">
+          View My Bookings
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ProfileRow({ label, value }) {
   return (
@@ -236,12 +348,22 @@ export default function MentorDashboard() {
   const [tab, setTab] = useState("availability");
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [congrats, setCongrats] = useState(null);
   useEffect(() => {
     api.get("/mentors/onboarding")
       .then((res) => setProfile(res.data.mentorProfile || {}))
       .catch(() => setProfile({}))
       .finally(() => setLoading(false));
+    api.get("/bookings/mentor")
+      .then((r) => {
+        const confirmed = r.data.filter((b) => b.status === "confirmed");
+        const seen = Number(localStorage.getItem("pt_seen_bookings") || 0);
+        if (confirmed.length > seen) {
+          setCongrats({ firstTime: seen === 0, count: confirmed.length - seen });
+        }
+        localStorage.setItem("pt_seen_bookings", confirmed.length);
+      })
+      .catch(() => {});
   }, []);
 
   if (loading)
@@ -259,6 +381,7 @@ export default function MentorDashboard() {
 
   const items = [
     { key: "availability", label: "Availability", icon: Clock },
+    { key: "bookings", label: "My Bookings", icon: CalendarCheck },
     { key: "earnings", label: "Earnings", icon: IndianRupee },
     { key: "profile", label: "My Profile", icon: UserCircle },
   ];
@@ -268,9 +391,14 @@ export default function MentorDashboard() {
       <Sidebar items={items} active={tab} onSelect={setTab} />
       <main className="flex-1 p-4 pt-24 pb-16 md:p-10 md:pt-10 md:h-screen md:overflow-y-auto">
         {tab === "availability" && <Availability />}
+        {tab === "bookings" && <MentorBookings />}
         {tab === "earnings" && <Earnings />}
         {tab === "profile" && <MentorProfile profile={profile} />}
       </main>
+      {congrats && (
+        <CongratsModal firstTime={congrats.firstTime} count={congrats.count}
+          onClose={() => { setCongrats(null); setTab("bookings"); }} />
+      )}
     </div>
   );
 }

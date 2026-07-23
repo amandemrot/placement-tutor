@@ -87,3 +87,9 @@ select {
   -moz-appearance: none;
   background-image: none;
 }
+button, a, [role="button"], select, summary, [onclick] {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
