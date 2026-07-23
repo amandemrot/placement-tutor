@@ -4,11 +4,17 @@ const nodemailer = require("nodemailer");
 const DEMO_EMAILS = ["student@demo.com", "mentor@test.com", "admin@pttutor.com"];
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  family: 4, // Render has no IPv6 route — without this, connect ENETUNREACH
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 8000,
 });
 
 const isDemo = (email) => {
