@@ -332,23 +332,22 @@ function StudentDetail({ id }) {
 /* ───────────── BOOKINGS ───────────── */
 function Bookings() {
   const [rows, setRows] = useState([]);
+  const [openId, setOpenId] = useState(null);
   useEffect(() => { api.get("/admin/bookings").then((r) => setRows(r.data)).catch(() => {}); }, []);
-
   const badge = (st) =>
     st === "confirmed" ? "text-green-400 border-green-500/40 bg-green-500/10"
     : st === "cancelled" ? "text-red-400 border-red-500/40 bg-red-500/10"
     : st === "completed" ? "text-brand-400 border-brand-500/40 bg-brand-500/10"
     : "text-yellow-400 border-yellow-500/40 bg-yellow-500/10";
-
   const t = (d) => d ? new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—";
-
   return (
     <div>
       <Head title="Bookings" sub={`${rows.length} most recent bookings.`} />
       <div className="space-y-3">
         {rows.map((b) => (
           <div key={b._id} className="glass rounded-2xl p-5">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div onClick={() => setOpenId(openId === b._id ? null : b._id)}
+              className="flex items-start justify-between gap-3 flex-wrap cursor-pointer">
               <div>
                 <p className="font-bold text-white">
                   {b.student?.name || "—"} <span className="text-gray-500 font-normal">→</span> {b.mentor?.name || "—"}
@@ -362,8 +361,27 @@ function Bookings() {
                 <span className={`text-[10px] tracking-widest uppercase rounded-full px-2.5 py-0.5 border ${badge(b.status)}`}>
                   {b.status}
                 </span>
+                <ChevronDown size={18}
+                  className={`text-gray-500 shrink-0 transition-transform ${openId === b._id ? "rotate-180" : ""}`} />
               </div>
             </div>
+            {openId === b._id && (
+              <div className="mt-5 pt-5 border-t border-line grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+                <Detail label="Student" value={b.student?.name} />
+                <Detail label="Student email" value={b.student?.email} />
+                <Detail label="Mentor" value={b.mentor?.name} />
+                <Detail label="Mentor email" value={b.mentor?.email} />
+                <Detail label="Date" value={b.slot?.date} />
+                <Detail label="Time" value={t(b.slot?.startTime)} />
+                <Detail label="Duration" value={b.slot?.durationMinutes ? `${b.slot.durationMinutes} min` : ""} />
+                <Detail label="Amount" value={`₹${b.amount}`} />
+                <Detail label="Status" value={b.status} />
+                <Detail label="Payment ID" value={b.razorpayPaymentId} />
+                <Detail label="Order ID" value={b.razorpayOrderId} />
+                <Detail label="Booked on" value={b.createdAt ? new Date(b.createdAt).toLocaleString("en-IN") : ""} />
+                <Detail label="Meeting link" value={b.meetingLink} link />
+              </div>
+            )}
           </div>
         ))}
         {rows.length === 0 && <p className="text-gray-500">No bookings yet.</p>}
