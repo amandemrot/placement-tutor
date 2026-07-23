@@ -24,10 +24,8 @@ exports.lockSlot = async (req, res) => {
     const now = new Date();
 
     // Enforce max 3 confirmed bookings per student (before locking/paying)
-    const bookingCount = await Booking.countDocuments({
-      student: req.user._id,
-      status: "confirmed",
-    });
+    const myConfirmed = await Booking.find({ student: req.user._id, status: "confirmed" }).populate("slot", "startTime");
+    const bookingCount = myConfirmed.filter(b => b.slot && new Date(b.slot.startTime) > now).length;
     if (bookingCount >= 3) {
       return res.status(403).json({ message: "You've reached the maximum of 3 bookings." });
     }
@@ -87,10 +85,8 @@ exports.confirmBooking = async (req, res) => {
     const now = new Date();
 
     // Enforce max 3 confirmed bookings per student
-    const bookingCount = await Booking.countDocuments({
-      student: req.user._id,
-      status: "confirmed",
-    });
+    const myConfirmed = await Booking.find({ student: req.user._id, status: "confirmed" }).populate("slot", "startTime");
+    const bookingCount = myConfirmed.filter(b => b.slot && new Date(b.slot.startTime) > now).length;
     if (bookingCount >= 3) {
       // release the lock so the slot goes back to available
       await Slot.updateOne(
