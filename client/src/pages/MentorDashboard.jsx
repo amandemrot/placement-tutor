@@ -6,7 +6,6 @@ import Availability from "../components/Availability";
 import Earnings from "../components/Earnings";
 import { useAuth } from "../AuthContext";
 import api from "../api";
-
 function MentorBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,65 +25,93 @@ function MentorBookings() {
   const confirmed = sub === "upcoming" ? upcoming : past;
   return (
     <div className="max-w-6xl">
-      <h1 className="text-3xl font-bold text-white mb-1">My Bookings</h1>
-      <p className="text-gray-400 mb-8">Sessions students have booked with you.</p>
-      <div className="flex gap-3 mb-6">
+      <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">My Bookings</h1>
+      <p className="text-gray-400 text-sm md:text-base mb-6 md:mb-8">Sessions students have booked with you.</p>
+      <div className="flex gap-2 md:gap-3 mb-6">
         <button onClick={() => setSub("upcoming")}
-          className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "upcoming" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
+          className={`flex-1 md:flex-none px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "upcoming" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
           Upcoming ({upcoming.length})
         </button>
         <button onClick={() => setSub("past")}
-          className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "past" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
+          className={`flex-1 md:flex-none px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${sub === "past" ? "bg-brand-500/20 text-brand-400 border-brand-500/40" : "text-gray-400 border-line hover:text-white"}`}>
           Past ({past.length})
         </button>
       </div>
       {confirmed.length === 0 ? (
-        <div className="bg-card2 border border-line rounded-2xl p-10 text-center text-gray-400">
+        <div className="bg-card2 border border-line rounded-2xl p-8 md:p-10 text-center text-gray-400 text-sm">
           No bookings yet. Once a student books your slot, it will appear here.
         </div>
       ) : (
-        <div className="space-y-4">
-          {confirmed.map((b) => (
-            <div key={b._id} className="bg-card2 border border-line rounded-2xl p-6">
-              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-                <img
-                  src={b.student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(b.student?.name || "student")}`}
-                  alt={b.student?.name}
-                  className="w-14 h-14 rounded-2xl object-cover border border-line"
-                />
-                <div className="flex-1">
-                  <p className="text-white font-bold">{b.student?.name}</p>
-                  <p className="text-gray-400 text-sm break-all">{b.student?.email}</p>
+        <>
+          {/* DESKTOP: table */}
+          <div className="hidden md:block bg-card2 border border-line rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-[2fr_1fr_1.2fr_1fr_1fr] gap-4 px-6 py-3 text-[11px] tracking-widest text-gray-500 uppercase border-b border-line">
+              <span>Student</span><span>Date</span><span>Time</span><span>Status</span><span className="text-right">Meeting</span>
+            </div>
+            {confirmed.map((b) => (
+              <div key={b._id} className="grid grid-cols-[2fr_1fr_1.2fr_1fr_1fr] gap-4 px-6 py-4 items-center border-b border-line last:border-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img src={b.student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(b.student?.name || "student")}`}
+                    alt={b.student?.name} className="w-9 h-9 rounded-full object-cover border border-line shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold truncate">{b.student?.name}</p>
+                    <p className="text-gray-500 text-xs truncate">{b.student?.email}</p>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-300">
-                  <p>{b.slot?.date}</p>
-                  <p className="text-gray-500">
-                    {b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"} · {b.slot?.durationMinutes} min
-                  </p>
-                </div>
-                <div className="text-sm">
-                  <p className="text-white font-bold">₹{b.amount}</p>
+                <span className="text-sm text-gray-300">{b.slot?.date}</span>
+                <span className="text-sm text-gray-300">
+                  {b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"} · {b.slot?.durationMinutes}min
+                </span>
+                <span>
                   {sub === "past" ? (
                     <span className="text-[11px] bg-gray-500/15 text-gray-400 border border-gray-500/40 rounded-full px-2 py-0.5">COMPLETED</span>
                   ) : (
                     <span className="text-[11px] bg-green-500/15 text-green-400 border border-green-500/40 rounded-full px-2 py-0.5">CONFIRMED</span>
                   )}
+                </span>
+                <span className="text-right">
+                  {sub === "upcoming" && b.meetingLink ? (
+                    <a href={b.meetingLink} target="_blank" rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-brand-400 hover:text-white text-sm font-semibold">
+                      <Video size={15} /> Join
+                    </a>
+                  ) : <span className="text-gray-600 text-sm">—</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* MOBILE: cards */}
+         {/* MOBILE: cards */}
+          <div className="md:hidden space-y-4">
+            {confirmed.map((b) => (
+              <div key={b._id} className="bg-card2 border border-line rounded-2xl p-4">
+                <div className="flex items-center gap-3">
+                  <img src={b.student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(b.student?.name || "student")}`}
+                    alt={b.student?.name} className="w-10 h-10 rounded-full object-cover border border-line shrink-0" />
+                  <p className="text-white font-bold truncate flex-1 min-w-0">{b.student?.name}</p>
+                  {sub === "past" ? (
+                    <span className="shrink-0 text-[10px] bg-gray-500/15 text-gray-400 border border-gray-500/40 rounded-full px-2 py-0.5">COMPLETED</span>
+                  ) : (
+                    <span className="shrink-0 text-[10px] bg-green-500/15 text-green-400 border border-green-500/40 rounded-full px-2 py-0.5">CONFIRMED</span>
+                  )}
                 </div>
+                <p className="text-gray-400 text-sm mt-3">
+                  {b.slot?.date} · {b.slot?.startTime ? new Date(b.slot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"} · {b.slot?.durationMinutes}min
+                </p>
                 {sub === "upcoming" && b.meetingLink && (
                   <a href={b.meetingLink} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 text-brand-400 hover:text-white text-sm font-semibold">
+                    className="mt-3 inline-flex items-center gap-1.5 text-brand-400 hover:text-white text-sm font-semibold">
                     <Video size={16} /> Join
                   </a>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 }
-
 function CongratsModal({ firstTime, count, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
@@ -118,7 +145,6 @@ function CongratsModal({ firstTime, count, onClose }) {
     </div>
   );
 }
-
 function ProfileRow({ label, value }) {
   return (
     <div className="flex justify-between gap-4 py-3 border-b border-line last:border-0">
@@ -127,7 +153,6 @@ function ProfileRow({ label, value }) {
     </div>
   );
 }
-
 function MentorProfile({ profile }) {
  const p = profile || {};
   return (
@@ -163,14 +188,12 @@ function MentorProfile({ profile }) {
           </div>
         </div>
       </div>
-
       {p.bio && (
         <div className="bg-card2 border border-line rounded-2xl p-6 mb-6">
           <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-3">About</h2>
           <p className="text-gray-300 leading-relaxed">{p.bio}</p>
         </div>
       )}
-
       <div className="grid md:grid-cols-3 gap-6 mb-6 items-start">
         <div className="bg-card2 border border-line rounded-2xl p-6">
           <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2">Personal</h2>
@@ -193,7 +216,6 @@ function MentorProfile({ profile }) {
           <ProfileRow label="Price per hour" value={p.pricePerHour ? `₹${p.pricePerHour}` : ""} />
         </div>
       </div>
-
       <div className="grid md:grid-cols-2 gap-6">
         {(Array.isArray(p.skills) ? p.skills : []).length > 0 && (
           <div className="bg-card2 border border-line rounded-2xl p-6">
@@ -215,7 +237,6 @@ function MentorProfile({ profile }) {
   );
 }
       
-
 function CenterCard({ children }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -223,7 +244,6 @@ function CenterCard({ children }) {
     </div>
   );
 }
-
 function PendingScreen() {
   const { logout } = useAuth();
   return (
@@ -244,12 +264,10 @@ function PendingScreen() {
     </CenterCard>
   );
 }
-
 function RejectedScreen() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-
   const refill = async () => {
     setBusy(true);
     try {
@@ -262,7 +280,6 @@ function RejectedScreen() {
       setBusy(false);
     }
   };
-
   return (
     <CenterCard>
       <div className="text-center">
@@ -285,7 +302,6 @@ function RejectedScreen() {
     </CenterCard>
   );
 }
-
 const TERMS = [
   "You will conduct all mentorship sessions professionally and on time.",
   "You will not share students' personal information with anyone.",
@@ -294,12 +310,10 @@ const TERMS = [
   "You confirm that all details submitted during onboarding are true and belong to you.",
   "PlacementTutor may contact you for additional verification at any time.",
 ];
-
 function TermsScreen({ onAccepted }) {
   const [checked, setChecked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-
   const accept = async () => {
     setBusy(true); setErr("");
     try {
@@ -310,7 +324,6 @@ function TermsScreen({ onAccepted }) {
       setBusy(false);
     }
   };
-
   return (
     <CenterCard>
       <div className="text-center mb-6">
@@ -320,22 +333,18 @@ function TermsScreen({ onAccepted }) {
         <h1 className="text-2xl font-bold text-white mb-2">Congratulations! 🎉</h1>
         <p className="text-gray-400">Your mentor account has been approved. Please read and accept the terms to continue.</p>
       </div>
-
       <div className="bg-black/20 border border-line rounded-xl p-5 max-h-56 overflow-y-auto mb-5 text-left">
         <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-3">Terms &amp; Conditions</h2>
         <ol className="list-decimal list-inside space-y-2 text-sm text-gray-300">
           {TERMS.map((t, i) => <li key={i}>{t}</li>)}
         </ol>
       </div>
-
       <label className="flex items-start gap-3 mb-5 cursor-pointer text-left">
         <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)}
           className="mt-1 w-4 h-4 accent-brand-500" />
         <span className="text-sm text-gray-300">I have read and agree to the Terms &amp; Conditions.</span>
       </label>
-
       {err && <p className="text-red-400 text-sm mb-3">{err}</p>}
-
       <button onClick={accept} disabled={!checked || busy}
         className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-400 glow disabled:opacity-40">
         {busy ? "Please wait…" : "Accept & Open Dashboard"}
@@ -343,7 +352,6 @@ function TermsScreen({ onAccepted }) {
     </CenterCard>
   );
 }
-
 export default function MentorDashboard() {
   const [tab, setTab] = useState("availability");
   const [profile, setProfile] = useState(null);
@@ -368,27 +376,20 @@ export default function MentorDashboard() {
       })
       .catch(() => {});
   }, []);
-
   if (loading)
     return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
-
   if (!profile?.onboardingSubmitted)
     return <Navigate to="/mentor-onboarding" replace />;
-
   if (profile?.verificationStatus === "rejected") return <RejectedScreen />;
-
   if (profile?.verificationStatus !== "approved") return <PendingScreen />;
-
   if (!profile?.termsAccepted)
     return <TermsScreen onAccepted={() => setProfile({ ...profile, termsAccepted: true })} />;
-
   const items = [
     { key: "availability", label: "Availability", icon: Clock },
     { key: "bookings", label: "My Bookings", icon: CalendarCheck },
     { key: "earnings", label: "Earnings", icon: IndianRupee },
     { key: "profile", label: "My Profile", icon: UserCircle },
   ];
-
   return (
     <div className="flex">
       <Sidebar items={items} active={tab} onSelect={setTab} />
