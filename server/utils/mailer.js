@@ -5,8 +5,8 @@ const DEMO_EMAILS = ["student@demo.com", "mentor@test.com", "admin@pttutor.com"]
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
   family: 4, // Render has no IPv6 route — without this, connect ENETUNREACH
   auth: {
     user: process.env.EMAIL_USER,
