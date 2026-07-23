@@ -184,6 +184,7 @@ const loginWithGoogle = async (credential) => {
                 <div className="mb-4">
                   <label className="text-xs tracking-widest text-gray-400">EMAIL</label>
                   <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@university.edu"
+                    onKeyDown={(e) => e.key === "Enter" && canSubmit && !loading && (mode === "password" ? submitPassword() : requestOtp())}
                     className="w-full mt-1 bg-card2 border border-line rounded-xl px-4 py-3 outline-none focus:border-brand-500 transition-colors" />
                 </div>
 
@@ -280,6 +281,7 @@ const loginWithGoogle = async (credential) => {
 
                 <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="• • • • • •"
+                  onKeyDown={(e) => e.key === "Enter" && otp.length === 6 && !loading && verifyOtp()}
                   className="w-full text-center text-2xl tracking-[0.5em] bg-card2 border border-brand-500 rounded-xl px-4 py-4 outline-none mb-4" />
 
                 {err && <p className="text-red-400 text-sm mb-3">{err}</p>}

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Clock, IndianRupee, UserCircle, Hourglass, LogOut, XCircle, PartyPopper } from "lucide-react";
+import { Clock, IndianRupee, UserCircle, Hourglass, LogOut, XCircle, PartyPopper, MapPin, Briefcase, GraduationCap, BadgeCheck } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Availability from "../components/Availability";
 import Earnings from "../components/Earnings";
@@ -17,44 +17,92 @@ function ProfileRow({ label, value }) {
 }
 
 function MentorProfile({ profile }) {
-  const p = profile || {};
+ const p = profile || {};
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold text-white mb-1">My Profile</h1>
-      <p className="text-gray-400 mb-8">Details you submitted during onboarding.</p>
+    <div className="max-w-6xl">
+      <div className="relative rounded-2xl overflow-hidden mb-6 border border-line">
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-600/40 via-brand-500/20 to-transparent" />
+        <div className="relative p-6 md:p-8 flex flex-col sm:flex-row sm:items-center gap-6 bg-card2/80">
+          <img
+            src={p.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=mentor"}
+            alt="Profile"
+            className="w-32 h-32 rounded-2xl object-cover border border-line shrink-0"
+          />
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-2 flex-wrap">
+              {p.designation || "Mentor"}
+              <span className="flex items-center gap-1 text-[11px] bg-brand-500/20 text-brand-400 border border-brand-500/40 rounded-full px-2 py-0.5">
+                <BadgeCheck size={12} /> Verified
+              </span>
+            </h1>
+            {p.location && (
+              <p className="text-gray-300 mt-2 flex items-center gap-2">
+                <MapPin size={16} className="text-brand-400" /> {p.location}
+              </p>
+            )}
+            {p.experience && (
+              <p className="text-gray-300 mt-1 flex items-center gap-2">
+                <Briefcase size={16} className="text-brand-400" /> {p.experience} yrs of Exp
+              </p>
+            )}
+            {p.pricePerHour && (
+              <p className="text-white font-bold mt-3 text-lg">₹{p.pricePerHour}<span className="text-sm text-gray-400 font-normal">/hr</span></p>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {p.photo && (
-        <img src={p.photo} alt="Profile"
-          className="w-24 h-24 rounded-2xl object-cover mb-6 border border-line" />
+      {p.bio && (
+        <div className="bg-card2 border border-line rounded-2xl p-6 mb-6">
+          <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-3">About</h2>
+          <p className="text-gray-300 leading-relaxed">{p.bio}</p>
+        </div>
       )}
 
-      <div className="bg-card2 border border-line rounded-2xl p-6 mb-6">
-        <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2">Personal</h2>
-        <ProfileRow label="Phone" value={p.phone} />
-        <ProfileRow label="Location" value={p.location} />
-        <ProfileRow label="Bio" value={p.bio} />
-        <ProfileRow label="LinkedIn" value={p.linkedIn} />
+      <div className="grid md:grid-cols-3 gap-6 mb-6 items-start">
+        <div className="bg-card2 border border-line rounded-2xl p-6">
+          <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2">Personal</h2>
+          <ProfileRow label="Phone" value={p.phone} />
+          <ProfileRow label="Location" value={p.location} />
+          <ProfileRow label="LinkedIn" value={p.linkedIn} />
+        </div>
+        <div className="bg-card2 border border-line rounded-2xl p-6">
+          <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2 flex items-center gap-2"><GraduationCap size={15} /> Education</h2>
+          <ProfileRow label="College" value={p.college} />
+          <ProfileRow label="Degree" value={p.degree} />
+          <ProfileRow label="Branch" value={p.branch} />
+          <ProfileRow label="Graduation Year" value={p.graduationYear} />
+        </div>
+        <div className="bg-card2 border border-line rounded-2xl p-6">
+          <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2 flex items-center gap-2"><Briefcase size={15} /> Experience</h2>
+          <ProfileRow label="Company" value={p.company} />
+          <ProfileRow label="Designation" value={p.designation} />
+          <ProfileRow label="Experience (years)" value={p.experience} />
+          <ProfileRow label="Price per hour" value={p.pricePerHour ? `₹${p.pricePerHour}` : ""} />
+        </div>
       </div>
 
-      <div className="bg-card2 border border-line rounded-2xl p-6 mb-6">
-        <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2">Education</h2>
-        <ProfileRow label="College" value={p.college} />
-        <ProfileRow label="Degree" value={p.degree} />
-        <ProfileRow label="Branch" value={p.branch} />
-        <ProfileRow label="Graduation Year" value={p.graduationYear} />
+      <div className="grid md:grid-cols-2 gap-6">
+        {(Array.isArray(p.skills) ? p.skills : []).length > 0 && (
+          <div className="bg-card2 border border-line rounded-2xl p-6">
+            <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-3">Skills</h2>
+            <div className="flex flex-wrap gap-2">
+              {p.skills.map((s) => (
+                <span key={s} className="text-sm bg-black/20 border border-line rounded-full px-4 py-1.5 text-gray-300">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="bg-card2 border border-line rounded-2xl p-6">
+          <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-3">Verified Info</h2>
+          <p className="text-green-400 text-sm flex items-center gap-2 mb-2"><BadgeCheck size={15} /> Email Verified</p>
+         {p.phone && <p className="text-green-400 text-sm flex items-center gap-2"><BadgeCheck size={15} /> Phone Verified</p>}
+        </div>
       </div>
-
-      <div className="bg-card2 border border-line rounded-2xl p-6">
-        <h2 className="text-sm font-semibold tracking-widest text-brand-400 uppercase mb-2">Experience</h2>
-        <ProfileRow label="Company" value={p.company} />
-        <ProfileRow label="Designation" value={p.designation} />
-        <ProfileRow label="Experience (years)" value={p.experience} />
-        <ProfileRow label="Skills" value={Array.isArray(p.skills) ? p.skills.join(", ") : p.skills} />
-        <ProfileRow label="Price per hour" value={p.pricePerHour ? `₹${p.pricePerHour}` : ""} />
-      </div>
-    </div>
+</div>
   );
 }
+      
 
 function CenterCard({ children }) {
   return (
