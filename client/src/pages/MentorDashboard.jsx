@@ -354,14 +354,17 @@ export default function MentorDashboard() {
       .then((res) => setProfile(res.data.mentorProfile || {}))
       .catch(() => setProfile({}))
       .finally(() => setLoading(false));
-    api.get("/bookings/mentor")
-      .then((r) => {
-        const confirmed = r.data.filter((b) => b.status === "confirmed");
-        const seen = Number(localStorage.getItem("pt_seen_bookings") || 0);
+    Promise.all([
+      api.get("/bookings/mentor"),
+      api.get("/mentors/onboarding"),
+    ])
+      .then(([b, o]) => {
+        const confirmed = b.data.filter((x) => x.status === "confirmed");
+        const seen = Number(o.data.mentorProfile?.seenBookings || 0);
         if (confirmed.length > seen) {
           setCongrats({ firstTime: seen === 0, count: confirmed.length - seen });
+          api.put("/mentors/onboarding", { data: { seenBookings: confirmed.length } }).catch(() => {});
         }
-        localStorage.setItem("pt_seen_bookings", confirmed.length);
       })
       .catch(() => {});
   }, []);

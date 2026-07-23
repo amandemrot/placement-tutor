@@ -47,6 +47,7 @@ password: { type: String, select: false },
         default: "pending",
       },
       earnings: { type: Number, default: 0 },
+      seenBookings: { type: Number, default: 0 },
     },
     // Student-specific
     profileCompleted: { type: Boolean, default: false },
