@@ -43,7 +43,7 @@ export default function MentorProfile() {
 
   return (
     <div className="min-h-screen px-4 py-8 md:py-12 max-w-6xl mx-auto">
-      <button onClick={() => nav(-1)}
+      <button onClick={() => nav("/student")}
         className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm">
         <ArrowLeft size={16} /> Back to mentors
       </button>
