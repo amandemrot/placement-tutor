@@ -5,6 +5,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import MentorDashboard from "./pages/MentorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Onboarding from "./pages/Onboarding";
+import StudentOnboarding from "./pages/StudentOnboarding";
 import MentorOnboarding from "./pages/MentorOnboarding";
 import MentorProfile from "./pages/MentorProfile";
 import ScrollToTop from "./components/ScrollToTop";
@@ -36,7 +37,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<AuthPage />} />
-<Route path="/onboarding" element={<Protected role="student"><Onboarding /></Protected>} />
+<Route path="/onboarding" element={<Protected role="student"><StudentOnboarding /></Protected>} />
 <Route path="/mentor-onboarding" element={<Protected role="mentor"><MentorOnboarding /></Protected>} />
         <Route path="/student" element={<Protected role="student"><StudentDashboard /></Protected>} />
         <Route path="/mentors/:id" element={<Protected role="student"><MentorProfile /></Protected>} />

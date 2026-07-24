@@ -7,7 +7,7 @@ const isDemo = (email) => {
   return DEMO_EMAILS.includes(e) || e.endsWith("@placementtutor.demo") || e.endsWith("@test.com");
 };
 
-const send = async ({ to, subject, html }) => {
+const send = async ({ to, subject, html, replyTo }) => {
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -17,6 +17,7 @@ const send = async ({ to, subject, html }) => {
     body: JSON.stringify({
       sender: FROM,
       to: [{ email: to }],
+      ...(replyTo ? { replyTo } : {}),
       subject,
       htmlContent: html,
     }),
@@ -85,4 +86,20 @@ const sendMentorNotification = ({ to, mentorName, studentName, date, time, durat
     ),
   });
 
-module.exports = { sendOtpMail, sendBookingConfirmation, sendMentorNotification, isDemo };
+const escapeHtml = (s = "") =>
+  String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const sendMentorQuestion = ({ to, mentorName, studentName, studentEmail, question }) =>
+  send({
+    to,
+    replyTo: { email: studentEmail, name: studentName },
+    subject: `Question from ${studentName} — PlacementTutor`,
+    html: wrap(
+      "A student has a question 💬",
+      `<p>Hi ${escapeHtml(mentorName)}, <b>${escapeHtml(studentName)}</b> asked you a question on PlacementTutor.</p>
+       <div style="background:#1a1d27;border-left:3px solid #6366f1;border-radius:8px;padding:16px;margin:18px 0;white-space:pre-wrap;color:#e5e7eb;">${escapeHtml(question)}</div>
+       <p style="color:#9ca3af;font-size:14px;">Just hit <b>Reply</b> — your response goes straight to ${escapeHtml(studentEmail)}.</p>`
+    ),
+  });
+
+module.exports = { sendOtpMail, sendBookingConfirmation, sendMentorNotification, sendMentorQuestion, isDemo };

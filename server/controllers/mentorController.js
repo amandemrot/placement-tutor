@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const Slot = require("../models/Slot");
 const Booking = require("../models/Booking");
+const { sendMentorQuestion, isDemo } = require("../utils/mailer");
+
+// in-memory throttle: one question per student per mentor per 5 min
+const askLog = new Map();
 
 // POST /api/mentors/become  (any logged-in user applies as mentor)
 exports.becomeMentor = async (req, res) => {
@@ -194,6 +198,52 @@ exports.getOnboarding = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ mentorProfile: user.mentorProfile || {}, name: user.name });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// POST /api/mentors/:id/ask   { question }
+exports.askMentor = async (req, res) => {
+  try {
+    const question = (req.body.question || "").trim();
+    if (question.length < 10)
+      return res.status(400).json({ message: "Please write at least 10 characters." });
+    if (question.length > 1000)
+      return res.status(400).json({ message: "Question is too long (1000 characters max)." });
+
+    const mentor = await User.findOne({
+      _id: req.params.id,
+      role: "mentor",
+      "mentorProfile.verificationStatus": "approved",
+    });
+    if (!mentor) return res.status(404).json({ message: "Mentor not found" });
+
+    const key = `${req.user._id}:${mentor._id}`;
+    const last = askLog.get(key);
+    if (last && Date.now() - last < 5 * 60 * 1000)
+      return res.status(429).json({ message: "You just sent a question to this mentor. Try again in a few minutes." });
+
+    if (isDemo(mentor.email)) {
+      askLog.set(key, Date.now());
+      console.log(`[DEMO] question for ${mentor.email} from ${req.user.email}: ${question}`);
+      return res.json({ message: "Question sent.", emailed: false });
+    }
+
+    try {
+      await sendMentorQuestion({
+        to: mentor.email,
+        mentorName: mentor.name,
+        studentName: req.user.name,
+        studentEmail: req.user.email,
+        question,
+      });
+    } catch (e) {
+      console.error("Ask mentor mail failed:", e.message);
+      return res.status(502).json({ message: "Could not send your question right now. Please try again." });
+    }
+
+    askLog.set(key, Date.now());
+    res.json({ message: "Question sent.", emailed: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
