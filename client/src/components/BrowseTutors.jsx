@@ -112,7 +112,7 @@ function FilterSheet({ skillOptions, state, setState, count, onClose }) {
         <button onClick={onClose} className="text-gray-400"><X size={22} /></button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6 space-y-8">
         <div>
           <h3 className="font-bold text-white mb-1">Price per session</h3>
           <p className="text-center text-xl font-bold text-white mt-4">
