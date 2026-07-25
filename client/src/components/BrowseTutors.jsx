@@ -326,12 +326,12 @@ export default function BrowseTutors() {
 
   return (
     <div>
-      <h1 className="text-2xl md:text-4xl font-bold text-white">
-        Online placement mentors for 1:1 sessions
+      <h1 style={{ fontFamily: "'Unbounded', sans-serif", letterSpacing: "-0.02em" }}
+        className="text-3xl md:text-4xl font-black text-white">
+        Browse <span className="bg-gradient-to-r from-fuchsia-400 via-purple-400 to-brand-500 bg-clip-text text-transparent">Tutors</span>
       </h1>
-      <p className="text-sm md:text-base text-gray-400 mt-2 max-w-3xl">
-        Looking for placement guidance? Every mentor here is verified and has cleared the
-        interviews you're preparing for. Pick a slot, meet 1:1, get a concrete plan.
+      <p className="text-sm md:text-base text-gray-400 mt-3 max-w-3xl leading-relaxed">
+        Verified mentors who've cleared the interviews you're preparing for. Pick a slot, meet 1:1, and walk away with a concrete plan.
       </p>
 
       {/* ── MOBILE FILTER ROW ── */}
