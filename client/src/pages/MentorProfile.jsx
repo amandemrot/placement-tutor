@@ -8,11 +8,20 @@ import {
 } from "lucide-react";
 import api from "../api";
 import { BookingModal, AskModal } from "../components/BrowseTutors";
+import { isFavorite, toggleFavorite } from "../favorites";
 
 // placeholder intro video — swap this ID, or set mentorProfile.introVideo per mentor
 const PLACEHOLDER_VIDEO = "ScMzIvxBSi4";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// ── saved-mentors persistence (localStorage) ──
+const FAV_KEY = "pt_saved_mentors";
+const readFavs = () => {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
+  catch { return []; }
+};
+const writeFavs = (ids) => localStorage.setItem(FAV_KEY, JSON.stringify(ids));
 
 function Section({ title, children, sub }) {
   return (
@@ -38,13 +47,15 @@ export default function MentorProfile() {
   const [showBio, setShowBio] = useState(false);
   const [resumeTab, setResumeTab] = useState("education");
   const [openSpec, setOpenSpec] = useState(null);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(isFavorite(id));
+  const toggleSave = () => setSaved(toggleFavorite(id));
   const [copied, setCopied] = useState(false);
   const othersRef = useRef(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setM(null); setSlots([]); setMonthOffset(0); setPickedDate(null); setShowBio(false);
+    setM(null); setSlots([]); setMonthOffset(0); setPickedDate(null); setShowBio(false); setSaved(isFavorite(id));
+    setSaved(readFavs().includes(id));
     api.get(`/mentors/${id}`).then((r) => setM(r.data)).catch(() => setNotFound(true));
     api.get(`/mentors/${id}/slots`).then((r) => setSlots(r.data)).catch(() => {});
     api.get("/mentors")
@@ -113,6 +124,13 @@ export default function MentorProfile() {
     navigator.clipboard?.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  };
+
+  const toggleSaved = () => {
+    const favs = readFavs();
+    const next = favs.includes(id) ? favs.filter((x) => x !== id) : [...favs, id];
+    writeFavs(next);
+    setSaved(next.includes(id));
   };
 
   /* ── shared blocks ── */
@@ -550,7 +568,7 @@ export default function MentorProfile() {
                 className="py-3 rounded-xl border border-line flex items-center justify-center text-gray-300 hover:border-brand-500 transition-colors">
                 <MessageSquare size={17} />
               </button>
-              <button onClick={() => setSaved((v) => !v)} title="Save"
+              <button onClick={toggleSaved} title={saved ? "Saved — click to remove" : "Save"}
                 className="py-3 rounded-xl border border-line flex items-center justify-center hover:border-brand-500 transition-colors">
                 <Heart size={17} className={saved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
               </button>
@@ -575,7 +593,7 @@ export default function MentorProfile() {
 
       {/* ── MOBILE STICKY BAR ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg/95 backdrop-blur border-t border-line px-4 py-3 flex items-center gap-3">
-        <button onClick={() => setSaved((v) => !v)}
+        <button onClick={toggleSaved}
           className="w-12 h-12 shrink-0 rounded-xl border border-line flex items-center justify-center">
           <Heart size={18} className={saved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
         </button>

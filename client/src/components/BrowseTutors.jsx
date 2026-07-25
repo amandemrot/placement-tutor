@@ -2,11 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Star, BadgeCheck, X, Clock, ChevronDown, GraduationCap,
-  Briefcase, Languages, MapPin, MessageSquare, Send, SlidersHorizontal, Check,
+  Briefcase, Languages, MapPin, MessageSquare, Send, SlidersHorizontal, Check, Heart,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import { getFavorites, toggleFavorite } from "../favorites";
 
 const PRICE_MAX = 3000;
 const SORTS = ["Our top picks", "Price: low to high", "Price: high to low", "Most experienced"];
@@ -260,6 +261,8 @@ export default function BrowseTutors() {
   const [expanded, setExpanded] = useState({});
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [savedIds, setSavedIds] = useState(getFavorites());
+  const [toast, setToast] = useState("");
   const nav = useNavigate();
 
   const [f, setF] = useState({
@@ -269,6 +272,14 @@ export default function BrowseTutors() {
   useEffect(() => {
     api.get("/mentors").then((r) => setMentors(r.data)).catch(() => {});
   }, []);
+
+  const toggleSave = (e, id) => {
+    e.stopPropagation();
+    const nowSaved = toggleFavorite(id);
+    setSavedIds(getFavorites());
+    setToast(nowSaved ? "Saved to your list" : "Removed from saved");
+    setTimeout(() => setToast(""), 1800);
+  };
 
   const skillOptions = useMemo(() => {
     const all = new Set();
@@ -401,6 +412,7 @@ export default function BrowseTutors() {
         {list.map((m, i) => {
           const p = m.mentorProfile || {};
           const open = expanded[m._id];
+          const isSaved = savedIds.includes(m._id);
           const photo = p.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`;
 
           return (
@@ -459,6 +471,10 @@ export default function BrowseTutors() {
                 </p>
 
                 <div className="flex gap-2.5 mt-3.5">
+                  <button onClick={(e) => toggleSave(e, m._id)}
+                    className="w-12 shrink-0 rounded-xl border border-line flex items-center justify-center active:border-brand-500">
+                    <Heart size={17} className={isSaved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
+                  </button>
                   <button onClick={() => setAsk(m)}
                     className="w-12 shrink-0 rounded-xl border border-line flex items-center justify-center text-gray-300 active:border-brand-500">
                     <MessageSquare size={17} />
@@ -550,10 +566,16 @@ export default function BrowseTutors() {
                     className="w-full mt-5 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-400 glow">
                     Book a session
                   </motion.button>
-                  <button onClick={() => setAsk(m)}
-                    className="w-full mt-2.5 py-3 rounded-xl font-semibold text-gray-200 border border-line hover:border-brand-500/60 transition-colors flex items-center justify-center gap-2">
-                    <MessageSquare size={15} /> Ask a question
-                  </button>
+                  <div className="flex gap-2.5 mt-2.5">
+                    <button onClick={() => setAsk(m)}
+                      className="flex-1 py-3 rounded-xl font-semibold text-gray-200 border border-line hover:border-brand-500/60 transition-colors flex items-center justify-center gap-2">
+                      <MessageSquare size={15} /> Ask a question
+                    </button>
+                    <button onClick={(e) => toggleSave(e, m._id)} title={isSaved ? "Saved — click to remove" : "Save"}
+                      className="w-12 shrink-0 rounded-xl border border-line flex items-center justify-center hover:border-brand-500/60 transition-colors">
+                      <Heart size={16} className={isSaved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -569,6 +591,16 @@ export default function BrowseTutors() {
       </AnimatePresence>
       <AnimatePresence>{sel && <BookingModal mentor={sel} onClose={() => setSel(null)} />}</AnimatePresence>
       <AnimatePresence>{ask && <AskModal mentor={ask} onClose={() => setAsk(null)} />}</AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2 px-5 py-3 rounded-xl bg-card border border-brand-500/50 glow text-sm font-semibold text-white">
+            <Heart size={15} className="text-brand-400 fill-brand-400" /> {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

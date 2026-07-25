@@ -8,6 +8,7 @@ import Onboarding from "./pages/Onboarding";
 import StudentOnboarding from "./pages/StudentOnboarding";
 import MentorOnboarding from "./pages/MentorOnboarding";
 import MentorProfile from "./pages/MentorProfile";
+import SavedMentors from "./components/SavedMentors";
 import ScrollToTop from "./components/ScrollToTop";
 
 function Protected({ children, role }) {
@@ -41,6 +42,7 @@ export default function App() {
 <Route path="/mentor-onboarding" element={<Protected role="mentor"><MentorOnboarding /></Protected>} />
         <Route path="/student" element={<Protected role="student"><StudentDashboard /></Protected>} />
         <Route path="/mentors/:id" element={<Protected role="student"><MentorProfile /></Protected>} />
+        <Route path="/saved" element={<Protected role="student"><SavedMentors /></Protected>} />
         <Route path="/mentor" element={<Protected role="mentor"><MentorDashboard /></Protected>} />
         <Route path="/admin" element={<Protected role="admin"><AdminDashboard /></Protected>} />
       </Routes>
