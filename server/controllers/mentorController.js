@@ -59,7 +59,7 @@ exports.addAvailability = async (req, res) => {
       return res.status(400).json({ message: "Cannot add availability in the past" });
     }
 
-    const pricePerHour = req.user.mentorProfile?.pricePerHour || 0;
+    const pricePerHour = req.user.mentorProfile?.pricePerHour || req.user.rate || 400;
     const price = Math.round((pricePerHour * durationMinutes) / 60);
 
     const slots = [];
@@ -127,10 +127,17 @@ exports.getMentor = async (req, res) => {
 // GET /api/mentors/:id/slots?date=2026-07-20  (public: available only)
 exports.getMentorSlots = async (req, res) => {
   try {
+    const now = new Date();
+    // Auto-revert any expired locks back to available
+    await Slot.updateMany(
+      { mentor: req.params.id, status: "locked", lockExpiresAt: { $lt: now } },
+      { $set: { status: "available", lockedBy: null, lockExpiresAt: null } }
+    );
+
     const filter = {
       mentor: req.params.id,
       status: "available",
-      startTime: { $gt: new Date() },
+      startTime: { $gt: now },
     };
     if (req.query.date) filter.date = req.query.date;
     const slots = await Slot.find(filter).sort("startTime");

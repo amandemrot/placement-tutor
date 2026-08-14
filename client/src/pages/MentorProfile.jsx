@@ -15,14 +15,6 @@ const PLACEHOLDER_VIDEO = "ScMzIvxBSi4";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// ── saved-mentors persistence (localStorage) ──
-const FAV_KEY = "pt_saved_mentors";
-const readFavs = () => {
-  try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
-  catch { return []; }
-};
-const writeFavs = (ids) => localStorage.setItem(FAV_KEY, JSON.stringify(ids));
-
 function Section({ title, children, sub }) {
   return (
     <section className="border-t border-line pt-7 md:pt-8">
@@ -48,19 +40,23 @@ export default function MentorProfile() {
   const [resumeTab, setResumeTab] = useState("education");
   const [openSpec, setOpenSpec] = useState(null);
   const [saved, setSaved] = useState(isFavorite(id));
-  const toggleSave = () => setSaved(toggleFavorite(id));
   const [copied, setCopied] = useState(false);
   const othersRef = useRef(null);
 
+  const toggleSave = () => setSaved(toggleFavorite(id));
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    setM(null); setSlots([]); setMonthOffset(0); setPickedDate(null); setShowBio(false); setSaved(isFavorite(id));
-    setSaved(readFavs().includes(id));
+    setM(null); setSlots([]); setMonthOffset(0); setPickedDate(null); setShowBio(false);
+    setSaved(isFavorite(id));
     api.get(`/mentors/${id}`).then((r) => setM(r.data)).catch(() => setNotFound(true));
     api.get(`/mentors/${id}/slots`).then((r) => setSlots(r.data)).catch(() => {});
     api.get("/mentors")
       .then((r) => setOthers(r.data.filter((x) => x._id !== id).slice(0, 6)))
       .catch(() => {});
+    const sync = () => setSaved(isFavorite(id));
+    window.addEventListener("pt_favorites_changed", sync);
+    return () => window.removeEventListener("pt_favorites_changed", sync);
   }, [id]);
 
   const month = useMemo(() => {
@@ -124,13 +120,6 @@ export default function MentorProfile() {
     navigator.clipboard?.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
-  };
-
-  const toggleSaved = () => {
-    const favs = readFavs();
-    const next = favs.includes(id) ? favs.filter((x) => x !== id) : [...favs, id];
-    writeFavs(next);
-    setSaved(next.includes(id));
   };
 
   /* ── shared blocks ── */
@@ -442,18 +431,19 @@ export default function MentorProfile() {
       </button>
 
       {/* ══════════ MOBILE ══════════ */}
-      <div className="md:hidden space-y-7">
+      <div className="md:hidden space-y-6">
         {VideoCard}
 
+        {/* header: photo left, name right — aligned, then details flush-left below */}
         <div>
           <div className="flex items-center gap-4">
             <img src={photo} alt={m.name}
               className="w-20 h-20 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 object-cover shrink-0" />
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-white truncate">{m.name}</h1>
+              <h1 className="text-2xl font-bold text-white leading-tight">{m.name}</h1>
               {p.location && (
                 <p className="text-sm text-gray-400 mt-1 flex items-center gap-1">
-                  <MapPin size={13} /> {p.location}
+                  <MapPin size={13} className="shrink-0" /> <span className="truncate">{p.location}</span>
                 </p>
               )}
             </div>
@@ -478,7 +468,7 @@ export default function MentorProfile() {
           </div>
           {copied && <p className="text-xs text-brand-400 mt-2">Link copied</p>}
 
-          <div className="flex gap-7 mt-5 pt-5 border-t border-line">
+          <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-line">
             <div>
               <p className="text-lg font-bold text-white flex items-center gap-1">
                 <Star size={14} className="text-yellow-400 fill-yellow-400" /> New
@@ -568,7 +558,7 @@ export default function MentorProfile() {
                 className="py-3 rounded-xl border border-line flex items-center justify-center text-gray-300 hover:border-brand-500 transition-colors">
                 <MessageSquare size={17} />
               </button>
-              <button onClick={toggleSaved} title={saved ? "Saved — click to remove" : "Save"}
+              <button onClick={toggleSave} title={saved ? "Saved — click to remove" : "Save"}
                 className="py-3 rounded-xl border border-line flex items-center justify-center hover:border-brand-500 transition-colors">
                 <Heart size={17} className={saved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
               </button>
@@ -593,7 +583,7 @@ export default function MentorProfile() {
 
       {/* ── MOBILE STICKY BAR ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg/95 backdrop-blur border-t border-line px-4 py-3 flex items-center gap-3">
-        <button onClick={toggleSaved}
+        <button onClick={toggleSave}
           className="w-12 h-12 shrink-0 rounded-xl border border-line flex items-center justify-center">
           <Heart size={18} className={saved ? "text-brand-400 fill-brand-400" : "text-gray-300"} />
         </button>

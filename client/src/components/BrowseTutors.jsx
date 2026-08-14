@@ -673,18 +673,25 @@ export function BookingModal({ mentor, onClose }) {
     }
   };
 
+  const handleClose = () => {
+    if (slot && stage === "pay") {
+      api.post("/bookings/release", { slotId: slot._id }).catch(() => {});
+    }
+    onClose();
+  };
+
   const t = (d) => new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}>
+      onClick={handleClose}>
       <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }}
         onClick={(e) => e.stopPropagation()}
         className="glass rounded-2xl p-7 w-full max-w-lg glow">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-xl font-bold text-white">Book {mentor.name}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X /></button>
+          <button onClick={handleClose} className="text-gray-400 hover:text-white"><X /></button>
         </div>
 
         {stage === "pick" && (
