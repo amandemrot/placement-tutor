@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.PROD
-    ? (import.meta.env.VITE_API_URL || "https://placement-tutor-4vj6.vercel.app/api")
+    ? (import.meta.env.VITE_API_URL || "https://placement-tutor-nixp.vercel.app/api")
     : "/api",
 });
 
